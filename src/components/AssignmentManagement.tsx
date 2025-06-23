@@ -1,10 +1,21 @@
 
 import { useState } from "react";
-import { Plus, Search, Calendar, CheckCircle, Clock, Users } from "lucide-react";
+import { Plus, Search, Calendar, CheckCircle, Clock, Users, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Assignment {
   id: number;
@@ -55,6 +66,7 @@ export const AssignmentManagement = () => {
   ]);
   
   const [searchTerm, setSearchTerm] = useState("");
+  const userRole = localStorage.getItem("userRole");
 
   const filteredAssignments = assignments.filter(assignment =>
     assignment.family.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -69,6 +81,12 @@ export const AssignmentManagement = () => {
         : assignment
     ));
   };
+
+  const handleDeleteAssignment = (id: number) => {
+    setAssignments(prev => prev.filter(assignment => assignment.id !== id));
+  };
+
+  const canDelete = userRole === "admin" || userRole === "headmonk" || userRole === "helper";
 
   return (
     <div className="space-y-6">
@@ -165,6 +183,32 @@ export const AssignmentManagement = () => {
                       <Button size="sm" variant="outline">
                         Edit
                       </Button>
+                      {canDelete && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700 hover:bg-red-50">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Assignment</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete this assignment for {assignment.family}? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={() => handleDeleteAssignment(assignment.id)}
+                                className="bg-red-600 hover:bg-red-700"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
                     </div>
                   </div>
                 </CardContent>
